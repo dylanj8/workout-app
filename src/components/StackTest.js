@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "../firebase";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 export default StackTest;
 
 function StackTest() {
@@ -11,6 +13,20 @@ function StackTest() {
   const [workout, setWorkout] = useState([
     { Exercise: "benchpress", Reps: "5", Sets: "5" },
   ]);
+
+  //firebase
+
+  const workoutCollectionRef = collection(db, "workouts");
+
+  //firebase
+
+  useEffect(() => {
+    const getWorkouts = async () => {
+      const data = await getDocs(workoutCollectionRef);
+      console.log(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+    };
+    getWorkouts();
+  }, []);
 
   const handle = (e, type, index) => {
     const localExer = [...formData.exercises];
@@ -47,11 +63,19 @@ function StackTest() {
       };
     });
   };
+  const createWorkout = async (workout) => {
+    try {
+      await addDoc(workoutCollectionRef, { workout });
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-  const addWorkout = (e) => {
+  const addWorkout = async (e) => {
     e.preventDefault();
     let newWorkouts = [...workout, formData];
     setWorkout(newWorkouts);
+    await createWorkout(workout);
     console.log(workout);
   };
 
