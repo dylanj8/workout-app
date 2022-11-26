@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { db } from "../firebase";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  addDoc,
+  deleteDoc,
+  doc,
+} from "firebase/firestore";
 export default StackTest;
 
 function StackTest() {
@@ -10,9 +16,9 @@ function StackTest() {
     exercises: [{ Exercise: "benchpress", Reps: "5", Sets: "5" }],
   });
 
-  const [workout, setWorkout] = useState([
-    { Exercise: "benchpress", Reps: "5", Sets: "5" },
-  ]);
+  const [workout, setWorkout] = useState([]);
+
+  const [dbData, setDbData] = useState([]);
 
   //firebase
 
@@ -23,7 +29,12 @@ function StackTest() {
   useEffect(() => {
     const getWorkouts = async () => {
       const data = await getDocs(workoutCollectionRef);
-      console.log(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      // console.log(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      const dbWorkouts = data.docs.map((doc) => ({
+        ...doc.data(),
+        id: doc.id,
+      }));
+      setDbData(...dbData, dbWorkouts);
     };
     getWorkouts();
   }, []);
@@ -79,6 +90,11 @@ function StackTest() {
     console.log(workout);
   };
 
+  const deleteWorkout = async (id) => {
+    const singleWorkout = doc(db, "workouts", id);
+    await deleteDoc(singleWorkout);
+    console.log(singleWorkout);
+  };
   return (
     <>
       <form action="">
@@ -119,6 +135,17 @@ function StackTest() {
         })}
         <button onClick={addWorkout}>Add Workout</button>
       </form>
+
+      <section>
+        {dbData.map((data, index) => {
+          const { id } = data;
+          return (
+            <div key={index}>
+              {index} <button onClick={() => deleteWorkout(id)}></button>
+            </div>
+          );
+        })}
+      </section>
     </>
   );
 }
